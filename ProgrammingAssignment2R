@@ -1,0 +1,56 @@
+# ProgrammingAssignment2R
+#--------------------------------------------
+# Aim:use lexical scoping rules in R to create a tool to cache
+#       the value of a matrix inversion until the input matrix
+#       changes: then the stored data object is recalculated.
+# The MakeCacheMatrix function creates and initialises the 
+# input data object
+MakeCacheMatrix <- function(x = numeric()) {
+        # Initialise data objects n & x where x represents the input
+        # data matrix and n represents the inverse matrix returned
+        n <- NULL
+        
+        # Sets and gets new data object x
+        SetData <- function(y) {
+                x <<- y
+                n <<- NULL
+        }
+        
+        # Arg x not defined in function thus retrieved from parent envr.
+        GetData <- function() x
+        
+        # Assigns to n in parent envr. value of the inverted matrix
+        SetInverse <- function(solve) n <<- solve
+        GetInverse <- function() n # gets n from parent envr.
+        
+        # Creates list object holding returned data for use in CacheSolve
+        list(SetData = SetData, GetData = GetData,
+             SetInverse = SetInverse,
+             GetInverse = GetInverse)
+}
+
+# The CacheSolve function checks whether an inverse matrix has been
+# calculated for the current input data and computes the inverse
+# matrix if not
+CacheSolve <- function(x,...) {
+        # Calls get function on input data matrix from parent envr.
+        n <- x$GetInverse()
+        
+        # Checks if the inverse has already been calculated:
+        # If so uses, cached data...
+        if(!is.null(n)) {
+                message("getting cached data")
+                return(n)
+        }
+        
+        # If not, retrieves data from relevant list element in MakeCacheMatrix
+        data <- x$GetData()
+        
+        # Calculates inverse matrix - note that this will error if the input 
+        # matrix is singular
+        n <- solve(data,...)
+        
+        # Assigns result to cache and returns value
+        x$SetInverse(n)
+        n
+}
